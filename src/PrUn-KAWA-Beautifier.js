@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        PrUn-KAWA-Beautifier
 // @namespace   http://tampermonkey.net/
-// @version     2.0
+// @version     2.1
 // @description A custom made tampermonkey script by KAWA corp with QoL improvements for Prosperous Universe.
 // @author      Dergell
 // @match       https://apex.prosperousuniverse.com/
@@ -40,7 +40,6 @@ this.$ = this.jQuery = jQuery.noConflict(true);
         greenButton: '_3yZx55zAhax66rAfv6d6Z1',
         redButton:   '_31dQZugJBAqjKvME7bRBlA',
         // specific
-        lmAdRow:    '_14L--Z4VrwQHE-Dayta1db',
         lmAdText:   '_1owHJs3IjU2hxdT0zQ1ytB',
         prodqTable: 'B5JEuqpNoN-VT8jmA8g3l',
     };
@@ -76,6 +75,7 @@ this.$ = this.jQuery = jQuery.noConflict(true);
         let identifier = $(buffer).find(`.${classList.bufferIdent}`).text().split(' ')[0];
         switch (identifier) {
             case 'LM':
+            case 'LMOS':
                 updateLM(buffer);
                 break;
             case 'LMP':
@@ -127,24 +127,22 @@ this.$ = this.jQuery = jQuery.noConflict(true);
         $(buffer).find('.kawa').remove();
 
         // each LM ads row
-        $(buffer).find(`.${classList.lmAdRow}`).each(function () {
-            // clone row; this is necessary because Apex needs the original row for updates
-            let row = $(this).find(`.${classList.lmAdText}`);
-            let newRow = row.clone();
-            newRow.addClass('kawa').removeClass(classList.lmAdText);
+        $(buffer).find(`.${classList.lmAdText}`).each(function () {
+            // clone text; this is necessary because Apex needs the original row for updates
+            let clone = $(this).clone();
 
             // calculate price per unit
-            let matches = /(?:BUYING|SELLING)\s*(\d+)\s(.*)\s@\s([\d,.]+)\s[A-Z]+/.exec(newRow.text());
+            let matches = /(?:BUYING|SELLING)\s*(\d+)\s(.*)\s@\s([\d,.]+)\s[A-Z]+/.exec(clone.text());
             if (matches) {
                 let price = parseFloat(matches[3].replace(',', ''));
                 let quantity = parseInt(matches[1]);
                 let result = ' (' + parseFloat((price / quantity).toFixed(2)) + '/u)';
 
-                newRow.find('span').append(result);
+                clone.find('span').append(result);
             }
 
             // add color
-            let line = newRow.html().split(' ');
+            let line = clone.html().split(' ');
             if (line[0] == 'BUYING') {
                 line[0] = `<span class="${classList.greenText}">` + line[0] + '</span>';
             } else if (line[0] == "SELLING") {
@@ -152,12 +150,11 @@ this.$ = this.jQuery = jQuery.noConflict(true);
             } else if (line[0] == "SHIPPING") {
                 line[0] = `<span class="${classList.yellowText}">` + line[0] + '</span>';
             }
-            newRow.html(line.join(' '));
+            clone.html(line.join(' '));
 
             // hide original row and show clone
-            row.hide();
-            row.parent().append(newRow);
-            newRow.show();
+            $(this).hide().parent().append(clone);
+            clone.addClass('kawa').removeClass(classList.lmAdText).show();
         });
     }
 
