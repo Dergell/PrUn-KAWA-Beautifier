@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        PrUn-KAWA-Beautifier
 // @namespace   http://tampermonkey.net/
-// @version     2.1
+// @version     2.2
 // @description A custom made tampermonkey script by KAWA corp with QoL improvements for Prosperous Universe.
 // @author      Dergell
 // @match       https://apex.prosperousuniverse.com/
@@ -40,8 +40,11 @@ this.$ = this.jQuery = jQuery.noConflict(true);
         greenButton: '_3yZx55zAhax66rAfv6d6Z1',
         redButton:   '_31dQZugJBAqjKvME7bRBlA',
         // specific
-        lmAdText:   '_1owHJs3IjU2hxdT0zQ1ytB',
-        prodqTable: 'B5JEuqpNoN-VT8jmA8g3l',
+        lmAdText:     '_1owHJs3IjU2hxdT0zQ1ytB',
+        prodLine:     'z8O6A0dWYid_6Vb1y75qz',
+        prodItem:     '_1j-lU9fMFzEgedyKKsPDtL',
+        prodProgress: 'E1aHYdg2zdgvZCsPl3p9y',
+        prodqTable:   'B5JEuqpNoN-VT8jmA8g3l',
     };
 
     // process every change that was detected
@@ -81,44 +84,49 @@ this.$ = this.jQuery = jQuery.noConflict(true);
             case 'LMP':
                 updateLMP(buffer);
                 break;
+            case 'PROD':
+                updatePROD(buffer);
+                break;
             case 'PRODQ':
                 updatePRODQ(buffer);
                 break;
         }
     }
 
-    // convert duration string to ETA
-    function toETA(duration) {
-        let eta = new Date();
-        let now = new Date();
-        let days = duration.match(/(\d+)\s*d/);
-        let hours = duration.match(/(\d+)\s*h/);
-        let minutes = duration.match(/(\d+)\s*m/);
-        let seconds = duration.match(/(\d+)\s*s/);
-
+    // convert duration string to seconds
+    function parseDuration(duration) {
         let parsedSeconds = 0;
+
+        let days = duration.match(/(\d+)\s*d/);
         if (days) {
             parsedSeconds += parseInt(days[1]) * 86400;
         }
+
+        let hours = duration.match(/(\d+)\s*h/);
         if (hours) {
             parsedSeconds += parseInt(hours[1]) * 3600;
         }
+
+        let minutes = duration.match(/(\d+)\s*m/);
         if (minutes) {
             parsedSeconds += parseInt(minutes[1]) * 60;
         }
+
+        let seconds = duration.match(/(\d+)\s*s/);
         if (seconds) {
             parsedSeconds += parseInt(seconds[1]);
         }
-        eta.setSeconds(eta.getSeconds() + parsedSeconds);
 
-        let diffTime = Math.abs(eta.getTime() - now.getTime());
-        let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        let result = eta.toLocaleString(navigator.language, {hour: '2-digit', minute: '2-digit'});
-        if (diffDays > 0) {
-            result = eta.toLocaleString(navigator.language, {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'});
-        }
+        return parsedSeconds;
+    }
 
-        return result;
+    // create ETA string from seconds
+    function calcETA(seconds) {
+        let eta = new Date();
+
+        eta.setSeconds(eta.getSeconds() + seconds);
+
+        return eta.toLocaleString(navigator.language, {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'});
     }
 
     // LM -> Local Market
@@ -206,15 +214,56 @@ this.$ = this.jQuery = jQuery.noConflict(true);
         }
     }
 
-    // PRODQ -> Production Queue
-    function updatePRODQ(buffer) {
+    // PROD -> Production Lines
+    function updatePROD(buffer) {
         // remove previous changes
         $(buffer).find('.kawa').remove();
 
-        // calculate ETA
-        $(buffer).find(`.${classList.prodqTable} td:nth-child(5)`).each(function () {
-            let timer = $(this).find('span');
-            timer.after('<div class="kawa">' + toETA(timer.text()) + '</div>');
+        // calculate times for each line
+        $(buffer).find(`.${classList.prodLine}`).each(function () {
+            let data = [];
+
+            // go through all items in this line
+            $(this).find(`.${classList.prodItem}`).each(function () {
+                let timeSpan = $(this).find(`span:not(.${classList.prodProgress})`);
+                let active = $(this).find(`.${classList.prodProgress}`).length;
+
+                if (active) {
+                    let duration = parseDuration(timeSpan.text());
+                    timeSpan.after('<div class="kawa">' + calcETA(duration) + '</div>');
+                    data.push(duration);
+                } else {
+                    let duration = Math.min(...data) + parseDuration(timeSpan.text());
+                    timeSpan.after('<div class="kawa">' + calcETA(duration) + '</div>');
+                    data[data.indexOf(Math.min(...data))] = duration;
+                }
+            });
+        });
+    }
+
+    // PRODQ -> Production Queue
+    function updatePRODQ(buffer) {
+        let data = [];
+
+        // remove previous changes
+        $(buffer).find('.kawa').remove();
+
+        // calculate ETA for active lines
+        $(buffer).find(`.${classList.prodqTable} tbody:nth-child(2) td:nth-child(5)`).each(function () {
+            let timeSpan = $(this).find('span');
+            let duration = parseDuration(timeSpan.text());
+
+            timeSpan.after('<div class="kawa">' + calcETA(duration) + '</div>');
+            data.push(duration);
+        });
+
+        // calculate ETA for queued lines
+        $(buffer).find(`.${classList.prodqTable} tbody:nth-child(3) td:nth-child(5)`).each(function () {
+            let timeSpan = $(this).find('span');
+            let duration = Math.min(...data) + parseDuration(timeSpan.text());
+
+            timeSpan.after('<div class="kawa">' + calcETA(duration) + '</div>');
+            data[data.indexOf(Math.min(...data))] = duration;
         });
     }
 
