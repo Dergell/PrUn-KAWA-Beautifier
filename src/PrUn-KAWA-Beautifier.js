@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        PrUn-KAWA-Beautifier
 // @namespace   http://tampermonkey.net/
-// @version     2.2
+// @version     2.2.1
 // @description A custom made tampermonkey script by KAWA corp with QoL improvements for Prosperous Universe.
 // @author      Dergell
 // @match       https://apex.prosperousuniverse.com/
@@ -225,7 +225,7 @@ this.$ = this.jQuery = jQuery.noConflict(true);
 
             // go through all items in this line
             $(this).find(`.${classList.prodItem}`).each(function () {
-                let timeSpan = $(this).find(`span:not(.${classList.prodProgress})`);
+                let timeSpan = $(this).find(`span:not([class])`);
                 let active = $(this).find(`.${classList.prodProgress}`).length;
 
                 if (active) {
