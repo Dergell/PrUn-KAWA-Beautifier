@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        PrUn-KAWA-Beautifier
 // @namespace   http://tampermonkey.net/
-// @version     2.2.1
+// @version     2.3.0
 // @description A custom made tampermonkey script by KAWA corp with QoL improvements for Prosperous Universe.
 // @author      Dergell
 // @match       https://apex.prosperousuniverse.com/
@@ -149,6 +149,28 @@ this.$ = this.jQuery = jQuery.noConflict(true);
                 clone.find('span').append(result);
             }
 
+            // calculate price per tonnage/volume
+            matches = /(?:SHIPPING)\s*([\d.]+)t\s\/\s([\d.]+)m³\s@\s([\d,.]+)\s[A-Z]+/.exec(clone.text());
+            if (matches) {
+                let tonnage = parseFloat(matches[1]);
+                let size = parseFloat(matches[2]);
+                let price = parseFloat(matches[3].replace(',', ''));
+
+                let unit;
+                let quantity;
+                if (tonnage > size) {
+                    unit = 't';
+                    quantity = tonnage;
+                } else {
+                    unit = 'm³';
+                    quantity = size;
+                }
+
+                let result = ' (' + parseFloat((price / quantity).toFixed(2)) + '/' + unit + ')';
+
+                clone.children('span:nth-child(1)').append(result);
+            }
+
             // add color
             let line = clone.html().split(' ');
             if (line[0] == 'BUYING') {
@@ -225,7 +247,7 @@ this.$ = this.jQuery = jQuery.noConflict(true);
 
             // go through all items in this line
             $(this).find(`.${classList.prodItem}`).each(function () {
-                let timeSpan = $(this).find(`span:not([class])`);
+                let timeSpan = $(this).find('span:not([class])');
                 let active = $(this).find(`.${classList.prodProgress}`).length;
 
                 if (active) {
