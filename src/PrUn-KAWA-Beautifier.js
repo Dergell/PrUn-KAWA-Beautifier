@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        PrUn-KAWA-Beautifier
 // @namespace   http://tampermonkey.net/
-// @version     2.3.0
+// @version     2.4.0
 // @description A custom made tampermonkey script by KAWA corp with QoL improvements for Prosperous Universe.
 // @author      Dergell
 // @match       https://apex.prosperousuniverse.com/
@@ -45,6 +45,7 @@ this.$ = this.jQuery = jQuery.noConflict(true);
         prodItem:     '_1j-lU9fMFzEgedyKKsPDtL',
         prodProgress: 'E1aHYdg2zdgvZCsPl3p9y',
         prodqTable:   'B5JEuqpNoN-VT8jmA8g3l',
+        sfcSumTbody:  '_2VAlxocH7EtoTdOjBzxulS',
     };
 
     // process every change that was detected
@@ -89,6 +90,12 @@ this.$ = this.jQuery = jQuery.noConflict(true);
                 break;
             case 'PRODQ':
                 updatePRODQ(buffer);
+                break;
+            case 'FLT':
+                updateFLT(buffer);
+                break;
+            case 'SFC':
+                updateSFC(buffer);
                 break;
         }
     }
@@ -286,6 +293,34 @@ this.$ = this.jQuery = jQuery.noConflict(true);
 
             timeSpan.after('<div class="kawa">' + calcETA(duration) + '</div>');
             data[data.indexOf(Math.min(...data))] = duration;
+        });
+    }
+
+    // FLT -> Fleet
+    function updateFLT(buffer) {
+        // remove previous changes
+        $(buffer).find('.kawa').remove();
+
+        // calculate ETA for active lines
+        $(buffer).find(`table td:nth-child(8)`).each(function () {
+            let timeSpan = $(this).find('span');
+            let duration = parseDuration(timeSpan.text());
+
+            timeSpan.after('<div class="kawa">' + calcETA(duration) + '</div>');
+        });
+    }
+
+    // SFC -> Ship Flight Control
+    function updateSFC(buffer) {
+        // remove previous changes
+        $(buffer).find('.kawa').remove();
+
+        // calculate ETA for active lines
+        $(buffer).find(`.${classList.sfcSumTbody} td:nth-child(4)`).each(function () {
+            let timeSpan = $(this).find('span');
+            let duration = parseDuration(timeSpan.text());
+
+            timeSpan.after('<div class="kawa">' + calcETA(duration) + '</div>');
         });
     }
 
