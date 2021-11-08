@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        PrUn-KAWA-Beautifier
 // @namespace   http://tampermonkey.net/
-// @version     2.4.0
+// @version     2.5.0
 // @description A custom made tampermonkey script by KAWA corp with QoL improvements for Prosperous Universe.
 // @author      Dergell
 // @match       https://apex.prosperousuniverse.com/
@@ -96,6 +96,9 @@ this.$ = this.jQuery = jQuery.noConflict(true);
                 break;
             case 'SFC':
                 updateSFC(buffer);
+                break;
+            case 'CXOS':
+                updateCXOS(buffer);
                 break;
         }
     }
@@ -321,6 +324,14 @@ this.$ = this.jQuery = jQuery.noConflict(true);
             let duration = parseDuration(timeSpan.text());
 
             timeSpan.after('<div class="kawa">' + calcETA(duration) + '</div>');
+        });
+    }
+
+    // CXOS -> Commodity Exchange Orders
+    function updateCXOS(buffer) {
+        // shorten cx name
+        $(buffer).find(`tbody td:nth-child(1) span`).each(function () {
+            $(this).text($(this).text().split(' ')[0]);
         });
     }
 
