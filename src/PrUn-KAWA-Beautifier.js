@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name        PrUn-KAWA-Beautifier
 // @namespace   http://tampermonkey.net/
-// @version     2.5.0
+// @version     2.6.0
 // @description A custom made tampermonkey script by KAWA corp with QoL improvements for Prosperous Universe.
 // @author      Dergell
 // @match       https://apex.prosperousuniverse.com/
 // @grant       none
-// @require     http://ajax.googleapis.com/ajax/libs/jquery/1.10.0/jquery.min.js
+// @require     http://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js
 // @downloadURL https://raw.githubusercontent.com/Dergell/PrUn-KAWA-Beautifier/master/src/PrUn-KAWA-Beautifier.js
 // @updateURL   https://raw.githubusercontent.com/Dergell/PrUn-KAWA-Beautifier/master/src/PrUn-KAWA-Beautifier.js
 // ==/UserScript==
@@ -28,38 +28,38 @@ this.$ = this.jQuery = jQuery.noConflict(true);
     // class selectors
     const classList = {
         // generic
-        logo:        '_2fyRVq2wB-JiJ3M4q1mEB',
-        logoLoading: '_9loCuZeuQgJye2371syub',
-        buffer:      '_1h7jHHAYnTmdWfZvSkS4bo',
-        bufferIdent: '_1OuLU0zrb4Lq9rlap4OCdX',
-        formRow:     '_2NJYPo9yjhxjx33ER3xFk3',
+        logo:        'JWoFGgEPrdT6JShoeS0+Ag==',
+        logoLoading: 'iydywTEIjthCtOf0nolVCQ==',
+        buffer:      '_2ELYlP31j95Y98WT6zodUQ==',
+        bufferIdent: 'e2PKRKZUW6K9xLKNAP56cg==',
+        formRow:     'A5WGQ40OQziF0SQm2My3sQ==',
         // colors
-        greenText:   '_1rsxmEXgWQAbBHGrAT6ZiI',
-        yellowText:  '_2SSIH9--LqS6n8etor6vMq',
-        redText:     '_37rC6F3tFhQffBlJ3pVE0N',
-        greenButton: '_3yZx55zAhax66rAfv6d6Z1',
-        redButton:   '_31dQZugJBAqjKvME7bRBlA',
+        greenText:   'Dup0T0BKUroQPYSDr5Ny9Q==',
+        yellowText:  'FeNFSePYjRzzF3ZVWXRSSg==',
+        redText:     'fxV6aj4sx4w6BOnQZ0ACsA==',
+        greenButton: 'QW80xveQm2GESkSORRH24g==',
+        redButton:   'ZFXWy4HCnztpZNlCXk83wQ==',
         // specific
-        lmAdText:     '_1owHJs3IjU2hxdT0zQ1ytB',
-        prodLine:     'z8O6A0dWYid_6Vb1y75qz',
-        prodItem:     '_1j-lU9fMFzEgedyKKsPDtL',
-        prodProgress: 'E1aHYdg2zdgvZCsPl3p9y',
-        prodqTable:   'B5JEuqpNoN-VT8jmA8g3l',
-        sfcSumTbody:  '_2VAlxocH7EtoTdOjBzxulS',
+        lmAdText:     'ZScG9AjcTRgJ+MQOXLuCWA==',
+        prodLine:     'o1YcYrDkxt9IvN4ApCEjIw==',
+        prodItem:     '_2xL1b8gQZHMTFqaIRImaoA==',
+        prodProgress: 'YpIN1cyZ-Qc1owA1-KoEKA==',
+        prodqTable:   '_1QAhpDUhd+7HWJxpHtoWJQ==',
+        sfcSumTbody:  'duWFYznJzY116LEyWFiRuQ==',
     };
 
     // process every change that was detected
     function processChange(mutation) {
         // wait Apex to finish loading
-        if ($(`.${classList.logo}`).hasClass(classList.logoLoading)) {
+        if ($('.' + $.escapeSelector(classList.logo)).hasClass(classList.logoLoading)) {
             setTimeout(processChange, 100, mutation);
             return;
         }
 
         // find buffers that changed
-        let buffers = $(mutation.target).find(`.${classList.buffer}`);
+        let buffers = $(mutation.target).find('.' + $.escapeSelector(classList.buffer));
         if (!buffers.length) {
-            buffers = $(mutation.target).closest(`.${classList.buffer}`);
+            buffers = $(mutation.target).closest('.' + $.escapeSelector(classList.buffer));
         }
 
         // disable observation until our changes are applied
@@ -76,7 +76,7 @@ this.$ = this.jQuery = jQuery.noConflict(true);
 
     // identify buffer and call corresponsing update method
     function identifyBuffer(buffer) {
-        let identifier = $(buffer).find(`.${classList.bufferIdent}`).text().split(' ')[0];
+        let identifier = $(buffer).find('.' + $.escapeSelector(classList.bufferIdent)).text().split(' ')[0];
         switch (identifier) {
             case 'LM':
             case 'LMOS':
@@ -145,7 +145,7 @@ this.$ = this.jQuery = jQuery.noConflict(true);
         $(buffer).find('.kawa').remove();
 
         // each LM ads row
-        $(buffer).find(`.${classList.lmAdText}`).each(function () {
+        $(buffer).find('.' + $.escapeSelector(classList.lmAdText)).each(function () {
             // clone text; this is necessary because Apex needs the original row for updates
             let clone = $(this).clone();
 
@@ -206,7 +206,7 @@ this.$ = this.jQuery = jQuery.noConflict(true);
         $(buffer).find('.kawa').remove();
 
         // collect current form data
-        $(buffer).find(`.${classList.formRow}`).each(function () {
+        $(buffer).find('.' + $.escapeSelector(classList.formRow)).each(function () {
             let rowLabel = $(this).find('> label > span').text();
             let rowContent = $(this).find('> div');
 
@@ -252,13 +252,13 @@ this.$ = this.jQuery = jQuery.noConflict(true);
         $(buffer).find('.kawa').remove();
 
         // calculate times for each line
-        $(buffer).find(`.${classList.prodLine}`).each(function () {
+        $(buffer).find('.' + $.escapeSelector(classList.prodLine)).each(function () {
             let data = [];
 
             // go through all items in this line
-            $(this).find(`.${classList.prodItem}`).each(function () {
+            $(this).find('.' + $.escapeSelector(classList.prodItem)).each(function () {
                 let timeSpan = $(this).find('span:not([class])');
-                let active = $(this).find(`.${classList.prodProgress}`).length;
+                let active = $(this).find('.' + $.escapeSelector(classList.prodProgress)).length;
 
                 if (active) {
                     let duration = parseDuration(timeSpan.text());
@@ -281,7 +281,7 @@ this.$ = this.jQuery = jQuery.noConflict(true);
         $(buffer).find('.kawa').remove();
 
         // calculate ETA for active lines
-        $(buffer).find(`.${classList.prodqTable} tbody:nth-child(2) td:nth-child(5)`).each(function () {
+        $(buffer).find('.' + $.escapeSelector(classList.prodqTable) + ' tbody:nth-of-type(1) td:nth-child(6)').each(function () {
             let timeSpan = $(this).find('span');
             let duration = parseDuration(timeSpan.text());
 
@@ -290,7 +290,7 @@ this.$ = this.jQuery = jQuery.noConflict(true);
         });
 
         // calculate ETA for queued lines
-        $(buffer).find(`.${classList.prodqTable} tbody:nth-child(3) td:nth-child(5)`).each(function () {
+        $(buffer).find('.' + $.escapeSelector(classList.prodqTable) + ' tbody:nth-of-type(2) td:nth-child(6)').each(function () {
             let timeSpan = $(this).find('span');
             let duration = Math.min(...data) + parseDuration(timeSpan.text());
 
@@ -305,7 +305,7 @@ this.$ = this.jQuery = jQuery.noConflict(true);
         $(buffer).find('.kawa').remove();
 
         // calculate ETA for active lines
-        $(buffer).find(`table td:nth-child(8)`).each(function () {
+        $(buffer).find('table td:nth-child(8)').each(function () {
             let timeSpan = $(this).find('span');
             let duration = parseDuration(timeSpan.text());
 
@@ -319,7 +319,7 @@ this.$ = this.jQuery = jQuery.noConflict(true);
         $(buffer).find('.kawa').remove();
 
         // calculate ETA for active lines
-        $(buffer).find(`.${classList.sfcSumTbody} td:nth-child(4)`).each(function () {
+        $(buffer).find('.' + $.escapeSelector(classList.sfcSumTbody) + ' td:nth-child(4)').each(function () {
             let timeSpan = $(this).find('span');
             let duration = parseDuration(timeSpan.text());
 
@@ -330,7 +330,7 @@ this.$ = this.jQuery = jQuery.noConflict(true);
     // CXOS -> Commodity Exchange Orders
     function updateCXOS(buffer) {
         // shorten cx name
-        $(buffer).find(`tbody td:nth-child(1) span`).each(function () {
+        $(buffer).find('tbody td:nth-child(1) span').each(function () {
             $(this).text($(this).text().split(' ')[0]);
         });
     }
